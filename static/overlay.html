@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>コメントオーバーレイ</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div id="chat"></div>
+
+  <script>
+    const chat = document.getElementById('chat');
+    const MAX_COMMENTS = 8;
+
+    function escapeHtml(text) {
+      const div = document.createElement('div');
+      div.textContent = text;
+      return div.innerHTML;
+    }
+
+    function addComment(data) {
+      const item = document.createElement('div');
+      item.className = 'comment' + (data.type === 'superchat' ? ' superchat' : '');
+
+      const authorEl = document.createElement('div');
+      authorEl.className = 'author';
+      if (data.type === 'superchat' && data.amount) {
+        authorEl.innerHTML = `${escapeHtml(data.author)} <span class="amount">${escapeHtml(data.amount)}</span>`;
+      } else {
+        authorEl.textContent = data.author;
+      }
+
+      const bubbleEl = document.createElement('div');
+      bubbleEl.className = 'bubble';
+      bubbleEl.textContent = data.message;
+
+      item.appendChild(authorEl);
+      item.appendChild(bubbleEl);
+      chat.appendChild(item);
+
+      // 上限を超えた古いコメントを削除
+      while (chat.children.length > MAX_COMMENTS) {
+        const old = chat.children[0];
+        old.classList.add('removing');
+        setTimeout(() => old.remove(), 300);
+        break;
+      }
+    }
+
+    function connect() {
+      const ws = new WebSocket('ws://localhost:8080/ws');
+
+      ws.onopen = () => console.log('[WS] 接続完了');
+
+      ws.onmessage = (event) => {
+        try {
+          const data = JSON.parse(event.data);
+          addComment(data);
+        } catch (e) {
+          console.error('[WS] パースエラー:', e);
+        }
+      };
+
+      ws.onclose = () => {
+        console.log('[WS] 切断 — 3秒後に再接続');
+        setTimeout(connect, 3000);
+      };
+
+      ws.onerror = (e) => console.error('[WS] エラー:', e);
+    }
+
+    connect();
+  </script>
+</body>
+</html>
