@@ -18,13 +18,7 @@ uv venv
 uv pip install -r requirements.txt
 ```
 
-### 2. YouTube Data API v3 キーの取得
-
-1. [Google Cloud Console](https://console.cloud.google.com/) でプロジェクトを作成
-2. 「APIとサービス」→「ライブラリ」から **YouTube Data API v3** を有効化
-3. 「認証情報」→「APIキーを作成」
-
-### 3. 環境変数の設定
+### 2. 環境変数の設定
 
 `.env.example` をコピーして `.env` を作成し、値を入力します。
 
@@ -33,15 +27,18 @@ cp .env.example .env
 ```
 
 ```env
-YOUTUBE_API_KEY=取得したAPIキー
-YOUTUBE_CHANNEL_ID=UCxxxxxxxxxxxxxxxxxx  # チャンネルIDはUCから始まる
+YOUTUBE_CHANNEL_ID=UCxxxxxxxxxxxxxxxxxx  # UCから始まるチャンネルID、または @ハンドル 形式
 PORT=8080
 MAX_COMMENTS=8
 ```
 
+> **APIキー不要！**
+> YouTube Data API v3 の代わりに YouTube の内部APIを直接使用するため、
+> Google Cloud Console の設定や課金は一切不要です。
+
 **チャンネルIDの確認方法:**
-YouTubeのチャンネルページURLから取得します。
-`https://www.youtube.com/channel/UCxxxxxxxxxxxxxxxxxx` の `UC〜` 部分がチャンネルIDです。
+- `UC...` 形式: チャンネルページURL `https://www.youtube.com/channel/UCxxxxxxxx` の `UC〜` 部分
+- `@ハンドル` 形式: `@channelname` をそのまま指定も可能
 
 ### 4. サーバー起動
 
@@ -82,7 +79,7 @@ body {
 ├── static/
 │   ├── overlay.html   # OBSブラウザソース用UI
 │   └── style.css      # 吹き出しスタイル
-├── .env               # APIキー・設定（Git管理外）
+├── .env               # チャンネルID・設定（Git管理外）
 ├── .env.example       # 設定テンプレート
 └── requirements.txt   # 依存パッケージ
 ```
