@@ -51,7 +51,7 @@ async def find_live_video_id(client: httpx.AsyncClient, api_key: str, channel_id
     )
     resp.raise_for_status()
     data = resp.json()
-    print(f"[デバッグ] Search APIレスポンス: {json.dumps(data, ensure_ascii=False)}")
+    print(f"[デバッグ] Search APIレスポンス: {data}")
     items = data.get("items", [])
     if not items:
         return None
