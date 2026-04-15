@@ -1,3 +1,25 @@
+/* ===================================================
+   YouTube Live Chat Overlay — Glassmorphism Design
+   =================================================== */
+
+/* デフォルト（暗い背景）テーマ */
+:root {
+  --bubble-bg: rgba(20, 20, 30, 0.72);
+  --bubble-text: #f0f0f0;
+  --author-color: rgba(255, 255, 255, 0.95);
+  --bubble-border: rgba(255, 255, 255, 0.18);
+  --bubble-inset: rgba(255, 255, 255, 0.1);
+}
+
+/* ライト（明るい背景）テーマ */
+:root.theme-light {
+  --bubble-bg: rgba(255, 255, 255, 0.82);
+  --bubble-text: #111111;
+  --author-color: rgba(0, 0, 0, 0.85);
+  --bubble-border: rgba(0, 0, 0, 0.12);
+  --bubble-inset: rgba(0, 0, 0, 0.04);
+}
+
 * {
   margin: 0;
   padding: 0;
@@ -6,119 +28,306 @@
 
 body {
   background: transparent;
-  font-family: 'Noto Sans JP', 'Hiragino Kaku Gothic ProN', 'Meiryo', sans-serif;
+  font-family: 'M PLUS Rounded 1c', 'Noto Sans JP', 'Hiragino Kaku Gothic ProN', 'Meiryo', sans-serif;
   display: flex;
   flex-direction: column;
   justify-content: flex-end;
-  align-items: flex-end;
+  align-items: flex-start;
   height: 100vh;
   overflow: hidden;
+  padding: 0;
 }
 
+/* ── チャットコンテナ ── */
 #chat {
   display: flex;
   flex-direction: column;
-  align-items: flex-end;
-  padding: 12px 16px;
-  gap: 16px;
+  gap: 10px;
+  padding: 12px 14px;
   width: 100%;
-  max-width: 360px;
+  max-width: 400px;
 }
 
-/* ---------- コメント1件 ---------- */
+/* ===================================================
+   コメント共通
+   =================================================== */
 .comment {
   display: flex;
-  flex-direction: column;
-  align-items: flex-end;
+  flex-direction: row;
+  align-items: flex-start;
+  gap: 10px;
+  animation: slide-in 0.3s cubic-bezier(0.34, 1.56, 0.64, 1) both;
   max-width: 100%;
-  animation: slide-in 0.25s ease-out;
 }
 
 .comment.removing {
-  animation: fade-out 0.3s ease forwards;
+  animation: fade-out 0.4s ease forwards;
 }
 
-/* ---------- 名前 ---------- */
-.author {
+/* ===================================================
+   アバター
+   =================================================== */
+.avatar {
+  flex-shrink: 0;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #667eea, #764ba2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
   font-size: 15px;
-  color: rgba(255, 255, 255, 0.9);
-  margin-bottom: 5px;
-  padding-right: 4px;
-  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.9), 0 0 6px rgba(0, 0, 0, 0.6);
+  font-weight: 700;
+  color: #fff;
+  overflow: hidden;
+  border: 2px solid rgba(255, 255, 255, 0.35);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
+  margin-top: 2px;
+}
+
+.avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* ===================================================
+   コンテンツ（著者名 + バブル）
+   =================================================== */
+.content {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+
+/* ヘッダー行 */
+.header-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+/* 著者名 */
+.author {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--author-color, rgba(255, 255, 255, 0.95));
+  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.8);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  max-width: 340px;
+  max-width: 200px;
 }
 
-/* ---------- 吹き出し ---------- */
-.bubble {
-  position: relative;
-  background: rgba(255, 255, 255, 0.88);
-  color: #222;
-  padding: 14px 22px;
-  border-radius: 26px 26px 5px 26px;
-  font-size: 24px;
-  line-height: 1.6;
+/* ===================================================
+   通常コメントのバブル（グラスモーフィズム）
+   =================================================== */
+.comment.text .bubble {
+  background: var(--bubble-bg, rgba(20, 20, 30, 0.72));
+  backdrop-filter: blur(12px) saturate(1.4);
+  -webkit-backdrop-filter: blur(12px) saturate(1.4);
+  border: 1px solid var(--bubble-border, rgba(255, 255, 255, 0.18));
+  color: var(--bubble-text, #f0f0f0);
+  padding: 9px 14px;
+  border-radius: 4px 18px 18px 18px;
+  font-size: 15px;
+  line-height: 1.55;
   word-break: break-word;
   max-width: 340px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.35);
-  backdrop-filter: blur(4px);
+  box-shadow:
+    0 4px 16px rgba(0, 0, 0, 0.35),
+    inset 0 1px 0 var(--bubble-inset, rgba(255, 255, 255, 0.1));
 }
 
-/* 吹き出しの尾（右下三角） */
-.bubble::after {
-  content: '';
-  position: absolute;
-  bottom: 0px;
-  right: -11px;
-  width: 0;
-  height: 0;
-  border-top: 12px solid transparent;
-  border-left: 12px solid rgba(255, 255, 255, 0.88);
+/* ===================================================
+   スーパーチャット
+   =================================================== */
+.comment.superchat {
+  flex-direction: column;
+  background: none;
 }
 
-/* ---------- スーパーチャット ---------- */
-.comment.superchat .bubble {
-  background: rgba(255, 213, 0, 0.92);
-  color: #1a1a00;
-  border-radius: 18px 18px 4px 18px;
-  font-weight: bold;
-}
-
-.comment.superchat .bubble::after {
-  border-left-color: rgba(255, 213, 0, 0.92);
+.comment.superchat .header-row {
+  background: var(--sc-header, #1565c0);
+  padding: 8px 12px;
+  border-radius: 10px 10px 0 0;
+  width: fit-content;
+  min-width: 220px;
+  max-width: 340px;
 }
 
 .comment.superchat .author {
-  color: rgba(255, 220, 50, 1);
+  color: #fff;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
 }
 
-.amount {
-  font-weight: bold;
-  color: rgba(255, 220, 50, 1);
-  margin-left: 4px;
+.comment.superchat .bubble {
+  background: var(--sc-body, #1e88e5);
+  color: #fff;
+  padding: 10px 14px;
+  border-radius: 0 0 10px 10px;
+  font-size: 15px;
+  font-weight: 700;
+  line-height: 1.5;
+  word-break: break-word;
+  width: fit-content;
+  min-width: 220px;
+  max-width: 340px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
 }
 
-/* ---------- アニメーション ---------- */
+.amount-badge {
+  font-size: 13px;
+  font-weight: 700;
+  color: rgba(255, 255, 255, 0.9);
+  background: rgba(0, 0, 0, 0.2);
+  padding: 2px 8px;
+  border-radius: 20px;
+  white-space: nowrap;
+}
+
+/* ===================================================
+   スーパーステッカー
+   =================================================== */
+.comment.sticker {
+  flex-direction: column;
+}
+
+.comment.sticker .header-row {
+  background: var(--sc-header, #1565c0);
+  padding: 8px 12px;
+  border-radius: 10px 10px 0 0;
+  width: fit-content;
+  min-width: 180px;
+  max-width: 340px;
+}
+
+.comment.sticker .author {
+  color: #fff;
+}
+
+.comment.sticker .bubble {
+  background: var(--sc-body, #1e88e5);
+  color: #fff;
+  padding: 10px 14px;
+  border-radius: 0 0 10px 10px;
+  font-size: 14px;
+  font-weight: 700;
+  width: fit-content;
+  min-width: 180px;
+  max-width: 340px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
+}
+
+/* ===================================================
+   メンバーシップ加入
+   =================================================== */
+.comment.membership {
+  flex-direction: column;
+}
+
+.comment.membership .header-row {
+  background: linear-gradient(135deg, #1b5e20, #2e7d32);
+  padding: 8px 12px;
+  border-radius: 10px 10px 0 0;
+  width: fit-content;
+  min-width: 200px;
+  max-width: 340px;
+}
+
+.comment.membership .author {
+  color: #fff;
+}
+
+.comment.membership .bubble {
+  background: linear-gradient(135deg, #2e7d32, #388e3c);
+  color: #fff;
+  padding: 10px 14px;
+  border-radius: 0 0 10px 10px;
+  font-size: 14px;
+  font-weight: 700;
+  width: fit-content;
+  min-width: 200px;
+  max-width: 340px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
+}
+
+.comment.membership .subtext {
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.8);
+  padding: 0 2px;
+}
+
+.membership-icon {
+  font-size: 14px;
+  color: #a5d6a7;
+}
+
+/* ===================================================
+   ギフトメンバーシップ
+   =================================================== */
+.comment.gift {
+  flex-direction: column;
+}
+
+.comment.gift .header-row {
+  background: linear-gradient(135deg, #4a148c, #6a1b9a);
+  padding: 8px 12px;
+  border-radius: 10px 10px 0 0;
+  width: fit-content;
+  min-width: 200px;
+  max-width: 340px;
+}
+
+.comment.gift .author {
+  color: #fff;
+}
+
+.comment.gift .bubble {
+  background: linear-gradient(135deg, #6a1b9a, #7b1fa2);
+  color: #fff;
+  padding: 10px 14px;
+  border-radius: 0 0 10px 10px;
+  font-size: 14px;
+  font-weight: 700;
+  width: fit-content;
+  min-width: 200px;
+  max-width: 340px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
+}
+
+.gift-icon {
+  font-size: 16px;
+}
+
+/* ===================================================
+   アニメーション
+   =================================================== */
 @keyframes slide-in {
   from {
     opacity: 0;
-    transform: translateX(24px);
+    transform: translateX(-20px) scale(0.95);
   }
   to {
     opacity: 1;
-    transform: translateX(0);
+    transform: translateX(0) scale(1);
   }
 }
 
 @keyframes fade-out {
   from {
     opacity: 1;
-    transform: translateY(0);
+    transform: translateY(0) scale(1);
+    max-height: 200px;
+    margin-bottom: 0;
   }
   to {
     opacity: 0;
-    transform: translateY(-8px);
+    transform: translateY(-6px) scale(0.97);
+    max-height: 0;
+    margin-bottom: -10px;
   }
 }

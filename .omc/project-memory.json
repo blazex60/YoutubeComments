@@ -1,0 +1,109 @@
+{
+  "version": "1.0.0",
+  "lastScanned": 1776225379331,
+  "projectRoot": "/home/mitsu/Documents/youtubeComments",
+  "techStack": {
+    "languages": [
+      {
+        "name": "Python",
+        "version": null,
+        "confidence": "high",
+        "markers": [
+          "pyproject.toml",
+          "requirements.txt"
+        ]
+      }
+    ],
+    "frameworks": [],
+    "packageManager": "pip",
+    "runtime": null
+  },
+  "build": {
+    "buildCommand": null,
+    "testCommand": "pytest",
+    "lintCommand": "ruff check",
+    "devCommand": null,
+    "scripts": {}
+  },
+  "conventions": {
+    "namingStyle": null,
+    "importStyle": null,
+    "testPattern": null,
+    "fileOrganization": null
+  },
+  "structure": {
+    "isMonorepo": false,
+    "workspaces": [],
+    "mainDirectories": [
+      "static"
+    ],
+    "gitBranches": {
+      "defaultBranch": "main",
+      "branchingStrategy": null
+    }
+  },
+  "customNotes": [],
+  "directoryMap": {
+    "static": {
+      "path": "static",
+      "purpose": "Static files",
+      "fileCount": 2,
+      "lastAccessed": 1776225379321,
+      "keyFiles": [
+        "overlay.html",
+        "style.css"
+      ]
+    }
+  },
+  "hotPaths": [
+    {
+      "path": "static/style.css",
+      "accessCount": 10,
+      "lastAccessed": 1776232232338,
+      "type": "file"
+    },
+    {
+      "path": "static/overlay.html",
+      "accessCount": 10,
+      "lastAccessed": 1776232551676,
+      "type": "file"
+    },
+    {
+      "path": "server.py",
+      "accessCount": 8,
+      "lastAccessed": 1776232536013,
+      "type": "file"
+    },
+    {
+      "path": ".env",
+      "accessCount": 3,
+      "lastAccessed": 1776232511171,
+      "type": "file"
+    },
+    {
+      "path": "requirements.txt",
+      "accessCount": 1,
+      "lastAccessed": 1776232228662,
+      "type": "file"
+    },
+    {
+      "path": "pyproject.toml",
+      "accessCount": 1,
+      "lastAccessed": 1776232228850,
+      "type": "file"
+    },
+    {
+      "path": "README.md",
+      "accessCount": 1,
+      "lastAccessed": 1776232235498,
+      "type": "file"
+    },
+    {
+      "path": "",
+      "accessCount": 1,
+      "lastAccessed": 1776232238962,
+      "type": "directory"
+    }
+  ],
+  "userDirectives": []
+}

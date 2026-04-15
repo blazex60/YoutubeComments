@@ -4,6 +4,9 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>コメントオーバーレイ</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@400;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -19,56 +22,194 @@
       return div.innerHTML;
     }
 
+    function getInitial(name) {
+      return (name || '?').charAt(0).toUpperCase();
+    }
+
+    // スーパーチャット金額からティア色を導出（APIカラーが使えない場合のフォールバック）
+    function getScTierColor(amount) {
+      if (!amount) return { header: '#1565c0', body: '#1e88e5' };
+      const n = parseFloat(amount.replace(/[^0-9.]/g, ''));
+      if (n >= 10000) return { header: '#b00020', body: '#e62117' };  // 赤
+      if (n >= 5000)  return { header: '#ad1457', body: '#e91e63' };  // マゼンタ
+      if (n >= 2000)  return { header: '#e65100', body: '#f57c00' };  // オレンジ
+      if (n >= 1000)  return { header: '#f9a825', body: '#ffca28' };  // 黄
+      if (n >= 500)   return { header: '#00897b', body: '#0f9d58' };  // 緑
+      if (n >= 200)   return { header: '#00838f', body: '#00e5ff' };  // シアン
+      return { header: '#1565c0', body: '#1e88e5' };                  // 青
+    }
+
+    function buildAvatar(data) {
+      const av = document.createElement('div');
+      av.className = 'avatar';
+      if (data.avatar) {
+        const img = document.createElement('img');
+        img.src = data.avatar;
+        img.alt = '';
+        img.onerror = () => { img.remove(); av.textContent = getInitial(data.author); };
+        av.appendChild(img);
+      } else {
+        av.textContent = getInitial(data.author);
+      }
+      return av;
+    }
+
     function addComment(data) {
       const item = document.createElement('div');
-      item.className = 'comment' + (data.type === 'superchat' ? ' superchat' : '');
+      const type = data.type || 'text';
+      item.className = `comment ${type}`;
 
-      const authorEl = document.createElement('div');
-      authorEl.className = 'author';
-      if (data.type === 'superchat' && data.amount) {
-        authorEl.innerHTML = `${escapeHtml(data.author)} <span class="amount">${escapeHtml(data.amount)}</span>`;
-      } else {
-        authorEl.textContent = data.author;
+      // スーパーチャット系のカラー設定
+      if (type === 'superchat' || type === 'sticker') {
+        const colors = data.headerColor
+          ? { header: data.headerColor, body: data.bodyColor || data.headerColor }
+          : getScTierColor(data.amount);
+        item.style.setProperty('--sc-header', colors.header);
+        item.style.setProperty('--sc-body', colors.body);
       }
 
-      const bubbleEl = document.createElement('div');
-      bubbleEl.className = 'bubble';
-      bubbleEl.textContent = data.message;
+      // アバター
+      const av = buildAvatar(data);
+      item.appendChild(av);
 
-      item.appendChild(authorEl);
-      item.appendChild(bubbleEl);
+      // コンテンツ部
+      const content = document.createElement('div');
+      content.className = 'content';
+
+      // ヘッダー行（著者名 + 金額バッジ）
+      const header = document.createElement('div');
+      header.className = 'header-row';
+
+      const authorEl = document.createElement('span');
+      authorEl.className = 'author';
+      authorEl.textContent = data.author;
+      header.appendChild(authorEl);
+
+      if ((type === 'superchat' || type === 'sticker') && data.amount) {
+        const badge = document.createElement('span');
+        badge.className = 'amount-badge';
+        badge.textContent = data.amount;
+        header.appendChild(badge);
+      }
+
+      if (type === 'membership') {
+        const icon = document.createElement('span');
+        icon.className = 'membership-icon';
+        icon.textContent = '★';
+        header.appendChild(icon);
+      }
+
+      if (type === 'gift') {
+        const icon = document.createElement('span');
+        icon.className = 'gift-icon';
+        icon.textContent = '🎁';
+        header.appendChild(icon);
+      }
+
+      content.appendChild(header);
+
+      // メッセージバブル
+      const bubble = document.createElement('div');
+      bubble.className = 'bubble';
+      bubble.textContent = data.message;
+      content.appendChild(bubble);
+
+      // サブテキスト（メンバーシップ）
+      if (type === 'membership' && data.subtext) {
+        const sub = document.createElement('div');
+        sub.className = 'subtext';
+        sub.textContent = data.subtext;
+        content.appendChild(sub);
+      }
+
+      item.appendChild(content);
       chat.appendChild(item);
 
-      // 上限を超えた古いコメントを削除
+      // 最大件数を超えた古いコメントを削除
       while (chat.children.length > MAX_COMMENTS) {
         const old = chat.children[0];
         old.classList.add('removing');
-        setTimeout(() => old.remove(), 300);
+        setTimeout(() => old.remove(), 400);
         break;
       }
     }
 
     function connect() {
       const ws = new WebSocket('ws://localhost:8080/ws');
-
       ws.onopen = () => console.log('[WS] 接続完了');
-
       ws.onmessage = (event) => {
         try {
           const data = JSON.parse(event.data);
-          addComment(data);
+          if (data.type === 'bg_color') {
+            applyBgColor(data.color);
+          } else {
+            addComment(data);
+          }
         } catch (e) {
           console.error('[WS] パースエラー:', e);
         }
       };
-
       ws.onclose = () => {
         console.log('[WS] 切断 — 3秒後に再接続');
         setTimeout(connect, 3000);
       };
-
       ws.onerror = (e) => console.error('[WS] エラー:', e);
     }
+
+    // hex → [r, g, b] (0–255)
+    function hexToRgb(hex) {
+      const h = hex.replace('#', '');
+      if (h.length === 3) {
+        return [
+          parseInt(h[0] + h[0], 16),
+          parseInt(h[1] + h[1], 16),
+          parseInt(h[2] + h[2], 16),
+        ];
+      }
+      return [
+        parseInt(h.slice(0, 2), 16),
+        parseInt(h.slice(2, 4), 16),
+        parseInt(h.slice(4, 6), 16),
+      ];
+    }
+
+    // WCAG 相対輝度 (0=黒, 1=白)
+    function luminance(r, g, b) {
+      const toLinear = c => {
+        const s = c / 255;
+        return s <= 0.04045 ? s / 12.92 : Math.pow((s + 0.055) / 1.055, 2.4);
+      };
+      return 0.2126 * toLinear(r) + 0.7152 * toLinear(g) + 0.0722 * toLinear(b);
+    }
+
+    // 背景色HEXからluminanceを計算してテーマクラスを切り替える
+    function applyBgColor(hex) {
+      try {
+        const [r, g, b] = hexToRgb(hex);
+        const lum = luminance(r, g, b);
+        const root = document.documentElement;
+        if (lum > 0.35) {
+          root.classList.add('theme-light');
+        } else {
+          root.classList.remove('theme-light');
+        }
+      } catch (e) { /* 不正な値は無視 */ }
+    }
+
+    // URLパラメータから色設定を読み込む
+    function applyColorParams() {
+      const p = new URLSearchParams(location.search);
+      const root = document.documentElement;
+
+      // ?bg=#xxxxxx → 輝度を自動判定してテーマを切り替え
+      if (p.has('bg')) applyBgColor(p.get('bg'));
+
+      // 個別上書きパラメータ（?bubbleBg / ?textColor / ?authorColor）
+      if (p.has('bubbleBg'))    root.style.setProperty('--bubble-bg',    p.get('bubbleBg'));
+      if (p.has('textColor'))   root.style.setProperty('--bubble-text',  p.get('textColor'));
+      if (p.has('authorColor')) root.style.setProperty('--author-color', p.get('authorColor'));
+    }
+    applyColorParams();
 
     connect();
   </script>
